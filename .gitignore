@@ -1,0 +1,8 @@
+# radne kopije i skripte iz ranijih pregleda (istorija je sada u gitu)
+.work/
+
+# sistemski fajlovi
+Thumbs.db
+desktop.ini
+.DS_Store
+__pycache__/
