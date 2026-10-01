@@ -73,13 +73,19 @@ site/
 
 ## 3. Boje i tipografija
 
-Sve je u `assets/css/site.css`, blok `:root` na vrhu:
+Paleta je **svetli krem sa crvenim detaljima**. Sve je u `assets/css/site.css`,
+blok `:root` na vrhu:
 
 ```css
---azur: #0F52FF;   /* akcenat — dugmad, linkovi, brojevi */
---ink:  #0B0B0D;   /* crna */
---bone: #E9E9E4;   /* svetlo siva (footer, sekcija sa šarama) */
+--paper:  #F6F0E5;   /* krem - pozadina strane */
+--bone:   #ECE2D0;   /* tamniji krem - footer, sekcija sa šarama */
+--ink:    #1E1714;   /* topla braon-crna - tekst i tamna sekcija */
+--accent: #C8102E;   /* crvena - dugmad, linkovi, brojevi, kvadratići */
+--accent-lite: #E8475C; /* svetlija crvena za tamnu podlogu (hero, brojevi) */
 ```
+
+Crvena `#C8102E` na kremu ima kontrast 5,2:1, a beli tekst na crvenom
+dugmetu 5,9:1, pa oba prolaze WCAG AA i za sitan tekst.
 
 Fontovi: **Archivo** (naslovi/tekst) + **JetBrains Mono** (labele, navigacija),
 oba sa Google Fonts.
@@ -99,8 +105,12 @@ Hero na `index.html` zauzima **celu visinu ekrana** (`min-height:100dvh` u
 
 Fotografija se učitava u dve verzije:
 
-- `assets/img/hero.webp` — 1800×1012, za ekrane širi od 780 px
-- `assets/img/hero-640.webp` — 860×1572, uspravan kadar za telefone
+- `assets/img/hero.webp` — 1529×1012, za ekrane šire od 780 px
+- `assets/img/hero-640.webp` — 649×1012, uspravan isečak za telefone
+  (desno krilo kapije i stub sa rotacionim svetlom)
+
+Obe su napravljene iz `hero.png` u korenu projekta (beli rub od 25 px sa
+desne strane je odsečen).
 
 Ako menjate hero, zamenite oba fajla i uskladite `width`/`height` u
 `index.html` (i u `<link rel="preload">` u `<head>`).
@@ -131,8 +141,11 @@ inače zumira), galerija u dve kolone i isključeni hover efekti na dodir.
 
 ## 6. Paralaksa
 
-Slika se u svom okviru pomera sporije od strane. Okvir dobija klasu **`plx`**,
-a pomera se prvo dete — `<img>` ili `<picture>`:
+**Svaka fotografija na sajtu** se u svom okviru pomera sporije od strane:
+hero, kartice, pločice, kartice šara, panel procesa, galerija i video iz
+radionice. Izuzetak je samo lightbox u galeriji, jer je tamo skrol zaključan.
+
+Okvir dobija klasu **`plx`**, a pomera se prvo dete, `<img>`, `<picture>` ili `<video>`:
 
 ```html
 <div class="prow__media plx">
@@ -140,15 +153,13 @@ a pomera se prvo dete — `<img>` ili `<picture>`:
 </div>
 ```
 
-Uslov je da okvir ima **fiksan odnos strana** (`aspect-ratio`) — takvi su već
-`.hero__media`, `.fcard__media`, `.prow__media`, `.media-cap` i
-`.phead__banner`. Galerija i pločice nemaju fiksnu visinu, pa tamo paralakse
-nema namerno.
+Okvir ne mora da ima fiksnu visinu. U galeriji visinu daje sama slika, a
+blagi zum je prekriva iznutra.
 
 Jačina se podešava sa dve promenljive, blok `PARALAKSA` u `site.css`:
 
 ```css
-.plx > img,.plx > picture{
+.plx > img,.plx > picture,.plx > video{
   --plx-t:5.5%;   /* koliko se slika penje i spušta */
   --plx-s:1.14;   /* zum koji pravi rezervu; najmanje 1 + 2 × --plx-t */
 }
@@ -158,21 +169,33 @@ Ako povećate `--plx-t`, **morate** povećati i `--plx-s`, inače se na krajevim
 vidi ivica. Na telefonu su vrednosti manje (`3.4%` / `1.085`), u bloku
 `MOBILNI`.
 
+Pomeraj ide kroz CSS svojstvo `translate`, a zum kroz `scale` (ne kroz
+`transform`). Zato hover zum na pločicama, karticama i u galeriji radi
+zajedno sa paralaksom i ne poništava je.
+
 Radi na dva načina, bez razlike u izgledu:
 
-- **Chrome, Edge, Safari 26+** — čista CSS animacija vezana za skrol
+- **Chrome, Edge, Safari 26+**: čista CSS animacija vezana za skrol
   (`animation-timeline: view()`). Računa je GPU, glavna nit je slobodna, pa
   skrol na telefonu ostaje gladak.
-- **Stariji pregledači** — isti pomeraj upisuje `parallax()` u `site.js`, ali
-  samo za slike koje su trenutno na ekranu i najviše jednom po kadru.
+- **Stariji pregledači** (i Firefox): isti pomeraj upisuje `parallax()` u
+  `site.js`, ali samo za slike koje su trenutno na ekranu i najviše jednom po kadru.
 
-Uz `prefers-reduced-motion` nema ni pomeranja ni zuma — slika stoji kao ranije.
+Uz `prefers-reduced-motion` nema ni pomeranja ni zuma, slika stoji mirno.
 
 > **Pazite na `overflow`.** Okviri koriste `overflow:hidden;overflow:clip`.
 > Samo `hidden` bi od okvira napravio sopstveni skrol kontejner i `view()` bi
-> pratio njega umesto strane — paralaksa bi se „zamrzla". Iz istog razloga
-> `body` ima `overflow-x:clip`, a zaključavanje skrola (meni, lightbox) ide
-> preko klase `no-scroll` na `<html>`.
+> pratio njega umesto strane, pa bi se paralaksa „zamrzla". Isto važi za
+> svakog **pretka** slike (zato `.ppanel` i `.pcard` imaju `clip`). Iz istog
+> razloga `body` ima `overflow-x:clip`, a zaključavanje skrola (meni,
+> lightbox) ide preko klase `no-scroll` na `<html>`.
+>
+> Karusel šara se skroluje vodoravno, pa je on sam skrol kontejner. Kartice
+> u njemu zato prate položaj celog karusela na strani, preko imenovane
+> vremenske linije `--plx-car`.
+>
+> `.plx` ima i `min-height:0`. Okvir sa `clip` nije skrol kontejner, pa bi ga
+> `aspect-ratio` inače pustio da naraste do prirodne visine uspravne slike.
 
 ---
 
@@ -186,48 +209,37 @@ Sajt nema backend — radi svuda:
 
 ---
 
-## 8. Logo
+## 8. Ime umesto znaka
 
-Znak je **„A" izrezano iz table** — pun zaobljen kvadrat (32×32, radijus 7) iz
-kojeg je jednim potezom izvučen slovni oblik. Vrh slova je **zasečen ravno**,
-kao kod pravog laserskog reza gde se oštri šiljak ne ostavlja; zbog toga znak
-ostaje čitak i na 16 px.
+Sajt nema grafički znak. U navigaciji piše samo **Lux Azur**: „Lux“ u
+srednjem rezu, „Azur“ u tankom i prigušenom tonu (`.brand__name` u svakoj
+`.html` datoteci).
 
-Crta se jednom `<path>` putanjom sa `fill-rule="evenodd"` i tri podputanje:
-tabla, kontura slova, unutrašnji trougao. Zato nema preklapanja i znak radi u
-jednoj boji, na svakoj podlozi.
-
-Koristi se na tri mesta:
-
-- navigacija — `.brand__mark` u svakoj `.html` datoteci (puna putanja, sa tablom)
-- loader — `.loader__mark--raw` / `--cut` (**samo slovo**, bez table, `viewBox="7 6.2 18 19.6"`)
-- favicon — `<link rel="icon">` (inline SVG, azur `#0F52FF`)
-
-Boju nasleđuje od roditelja (`currentColor`), pa je azur na svetloj navigaciji,
-a beo na tamnoj. Ako menjate znak, zamenite `d="…"` na sva tri mesta.
+Favicon (`<link rel="icon">`, inline SVG) je crveni zaobljen kvadrat sa
+inicijalima **LA** u krem boji.
 
 ## 9. Loader
 
 Prikazuje se **samo pri prvom otvaranju sajta u poseti** (pamti se u
 `sessionStorage`), ne na svakom kliku kroz meni.
 
-Jedna ideja, bez dodataka: **laser seče znak odozgo nadole**. Slovo stoji u dva
-sloja — sirovina (`--raw`, belo na 13 %) i izrezani deo (`--cut`, puno belo)
-koji se otkriva `clip-path`-om iza azurne niti (`.loader__beam`). Petlja traje
-1,75 s. Ispod stoji samo ime u mono slogu; nema ni trake ni potpisa u dnu.
+Minimalan je, bez znaka. Na krem tabli ime **Lux Azur** izranja iz svoje
+linije, a ispod njega se crvena nit iscrta s leva na desno, kao laserski
+rez. Na izlazu reči odlaze nagore, nit se povlači udesno i tabla se podigne.
 
-Traje najmanje ~0,8 s, pa ceo tamni panel **odlazi naviše** u jednom potezu.
+Ulazna animacija **čeka da stigne font** (Archivo), da se slovo ne bi
+zamenilo usred pokreta. Ako font kasni, kreće posle 0,7 s sistemskim slogom.
 
 Sigurnosne granice:
 
 - bez JavaScripta se **nikad ne pojavi** (klasa `js-loading` se dodaje skriptom)
-- tvrdi prekid na 4,5 s — ne može da ostane zaglavljen
-- uz `prefers-reduced-motion` nema animacije, samo kratak fade
+- tvrdi prekid na 4,5 s, ne može da ostane zaglavljen
+- uz `prefers-reduced-motion` nema pokreta, samo kratak fade
 
 Trajanje se menja u `assets/js/site.js`:
 
 ```js
-const MIN = 820;              // koliko najmanje stoji (ms)
+const MIN = 1050;   // koliko ime najmanje stoji posle ulaska (ms)
 ```
 
 a izgled u `assets/css/site.css`, sekcija `LOADER` na dnu.

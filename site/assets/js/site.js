@@ -33,27 +33,52 @@ function loader() {
   if (!root.classList.contains("js-loading")) { el.remove(); return; }
   try { sessionStorage.setItem("la_seen", "1"); } catch (e) {}
 
-  let done = false;
+  const MIN = 1050;                  // koliko ime najmanje stoji posle ulaska (ms)
+  let t0 = 0, done = false;
+
   const finish = () => {
     if (done) return;
     done = true;
     el.classList.add("is-done");
     // js-loading ostaje dok traje izlazna animacija, inace bi .loader
-    // odmah dobio display:none i rez se ne bi ni video
+    // odmah dobio display:none i izlaz se ne bi ni video
     setTimeout(() => {
       root.classList.remove("js-loading");
       el.remove();
-    }, 900);
+    }, 1050);
   };
 
-  const MIN = 820;
-  const t0 = performance.now();
-  const onReady = () => setTimeout(finish, Math.max(0, MIN - (performance.now() - t0)));
+  // ulazna animacija krece tek kad stigne font imena, da se slovo ne
+  // zameni usred pokreta; ako font kasni, krece posle 700 ms sistemskim
+  const go = () => {
+    if (t0 || done) return;
+    t0 = performance.now();
+    requestAnimationFrame(() => el.classList.add("is-go"));
+    const onReady = () => setTimeout(finish, Math.max(0, MIN - (performance.now() - t0)));
+    if (document.readyState === "complete") onReady();
+    else addEventListener("load", onReady, { once: true });
+  };
 
-  if (document.readyState === "complete") onReady();
-  else addEventListener("load", onReady, { once: true });
-
+  fontReady().then(go);
+  setTimeout(go, 700);
   setTimeout(finish, 4500);          // sigurnosni prekid
+}
+
+/* Google Fonts se ucitava odlozeno (media="print" trik), pa prvo cekamo
+   da stigne stylesheet, a onda bas oba reza Archiva koja loader koristi. */
+function fontReady() {
+  const link = $('link[rel="stylesheet"][href*="fonts.googleapis.com"]');
+  const sheet = new Promise(res => {
+    if (!link || link.sheet) return res();
+    link.addEventListener("load", res, { once: true });
+    link.addEventListener("error", res, { once: true });
+  });
+  return sheet
+    .then(() => document.fonts && Promise.all([
+      document.fonts.load('500 1em "Archivo"', "Lux"),
+      document.fonts.load('300 1em "Archivo"', "Azur")
+    ]))
+    .catch(() => {});
 }
 
 /* ---------- 1. kontakt podaci u DOM ---------- */
@@ -336,7 +361,7 @@ function parallax() {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   const items = boxes
-    .map(box => ({ box, el: box.querySelector(":scope > picture, :scope > img"), t: 0 }))
+    .map(box => ({ box, el: box.querySelector(":scope > picture, :scope > img, :scope > video"), t: 0 }))
     .filter(it => it.el);
   if (!items.length) return;
 
