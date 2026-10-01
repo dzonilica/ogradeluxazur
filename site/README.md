@@ -188,7 +188,9 @@ Uz `prefers-reduced-motion` nema ni pomeranja ni zuma, slika stoji mirno.
 > pratio njega umesto strane, pa bi se paralaksa „zamrzla". Isto važi za
 > svakog **pretka** slike (zato `.ppanel` i `.pcard` imaju `clip`). Iz istog
 > razloga `body` ima `overflow-x:clip`, a zaključavanje skrola (meni,
-> lightbox) ide preko klase `no-scroll` na `<html>`.
+> lightbox, loader) ide **samo** preko `<html>` (klase `no-scroll` i
+> `js-loading`). Da `body` dobije `overflow:hidden`, postao bi skrol
+> kontejner i slike bi skočile čim se skrol otključa.
 >
 > Karusel šara se skroluje vodoravno, pa je on sam skrol kontejner. Kartice
 > u njemu zato prate položaj celog karusela na strani, preko imenovane
@@ -228,18 +230,21 @@ linije, a ispod njega se crvena nit iscrta s leva na desno, kao laserski
 rez. Na izlazu reči odlaze nagore, nit se povlači udesno i tabla se podigne.
 
 Ulazna animacija **čeka da stigne font** (Archivo), da se slovo ne bi
-zamenilo usred pokreta. Ako font kasni, kreće posle 0,7 s sistemskim slogom.
+zamenilo usred pokreta. Ako font kasni, kreće posle 0,7 s i ime ostaje u
+sistemskom slogu do kraja (klasa `is-sys`), pa se slovo nikad ne menja usred
+animacije.
 
 Sigurnosne granice:
 
 - bez JavaScripta se **nikad ne pojavi** (klasa `js-loading` se dodaje skriptom)
 - tvrdi prekid na 4,5 s, ne može da ostane zaglavljen
+- ako se `site.js` uopšte ne učita, skripta u `<head>` sama skida loader posle 6,5 s
 - uz `prefers-reduced-motion` nema pokreta, samo kratak fade
 
 Trajanje se menja u `assets/js/site.js`:
 
 ```js
-const MIN = 1050;   // koliko ime najmanje stoji posle ulaska (ms)
+const MIN = 1350;   // od početka ulaza do početka izlaza (ms); ulaz traje ~0,9 s
 ```
 
 a izgled u `assets/css/site.css`, sekcija `LOADER` na dnu.

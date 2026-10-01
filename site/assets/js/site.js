@@ -33,19 +33,22 @@ function loader() {
   if (!root.classList.contains("js-loading")) { el.remove(); return; }
   try { sessionStorage.setItem("la_seen", "1"); } catch (e) {}
 
-  const MIN = 1050;                  // koliko ime najmanje stoji posle ulaska (ms)
-  let t0 = 0, done = false;
+  // ulaz (reci + crvena nit) traje ~0,9 s, pa ime jos ~0,45 s mirno stoji
+  const MIN = 1350;                  // od pocetka ulaza do pocetka izlaza (ms)
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let t0 = 0, done = false, fontsOk = false;
 
   const finish = () => {
     if (done) return;
     done = true;
     el.classList.add("is-done");
     // js-loading ostaje dok traje izlazna animacija, inace bi .loader
-    // odmah dobio display:none i izlaz se ne bi ni video
+    // odmah dobio display:none i izlaz se ne bi ni video; bez pokreta
+    // izlaza nema, pa se strana otkljucava odmah
     setTimeout(() => {
       root.classList.remove("js-loading");
       el.remove();
-    }, 1050);
+    }, calm ? 60 : 1000);
   };
 
   // ulazna animacija krece tek kad stigne font imena, da se slovo ne
@@ -53,13 +56,14 @@ function loader() {
   const go = () => {
     if (t0 || done) return;
     t0 = performance.now();
+    if (!fontsOk) el.classList.add("is-sys");
     requestAnimationFrame(() => el.classList.add("is-go"));
     const onReady = () => setTimeout(finish, Math.max(0, MIN - (performance.now() - t0)));
     if (document.readyState === "complete") onReady();
     else addEventListener("load", onReady, { once: true });
   };
 
-  fontReady().then(go);
+  fontReady().then(() => { fontsOk = true; go(); });
   setTimeout(go, 700);
   setTimeout(finish, 4500);          // sigurnosni prekid
 }
