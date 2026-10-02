@@ -153,33 +153,49 @@ Okvir dobija klasu **`plx`**, a pomera se prvo dete, `<img>`, `<picture>` ili `<
 </div>
 ```
 
-Okvir ne mora da ima fiksnu visinu. U galeriji visinu daje sama slika, a
-blagi zum je prekriva iznutra.
+Slika je **viša od okvira** i dok okvir prolazi kroz ekran klizi kroz njega,
+od donje do gornje ivice. Ne zumira se: uspravne fotografije u položenim
+okvirima ionako imaju višak visine koji `object-fit:cover` odseca, a
+paralaksa koristi baš taj višak.
 
-Jačina se podešava sa dve promenljive, blok `PARALAKSA` u `site.css`:
+Jačina se podešava jednom promenljivom, blok `PARALAKSA` u `site.css`:
 
 ```css
 .plx > img,.plx > picture,.plx > video{
-  --plx-t:5.5%;   /* koliko se slika penje i spušta */
-  --plx-s:1.14;   /* zum koji pravi rezervu; najmanje 1 + 2 × --plx-t */
+  --plx-k:.12;    /* rezerva gore i dole, u delu visine okvira; hod = 2 × k */
 }
 ```
 
-Ako povećate `--plx-t`, **morate** povećati i `--plx-s`, inače se na krajevima
-vidi ivica. Na telefonu su vrednosti manje (`3.4%` / `1.085`), u bloku
-`MOBILNI`.
+Ista vrednost važi i na telefonu. Ivica se nikad ne vidi, ma koliko `k`
+bilo, ali što je veće, to je slika više uvećana u okvirima koji nemaju
+višak visine (kvadratne i položene fotografije).
 
-Pomeraj ide kroz CSS svojstvo `translate`, a zum kroz `scale` (ne kroz
-`transform`). Zato hover zum na pločicama, karticama i u galeriji radi
-zajedno sa paralaksom i ne poništava je.
+Posebni slučajevi, takođe u bloku `PARALAKSA`:
+
+| Gde | `--plx-k` | Zašto |
+|---|---|---|
+| Zaglavlja strana (`.phead__banner`) | `.25` | uspravna fotografija u širokom okviru, jači hod je besplatan |
+| CTA na početnoj (`.media-cap--low`) | `.08` | ograda je na dnu fotografije, veći hod bi otkrio plafon balkona |
+| Galerija (`.gitem`) | `.1` | okvir nema svoju visinu (daje je slika), pa rezervu pravi zum |
+| Hero (`.plx--top`) | — | vidi ispod |
+
+**Hero** (`plx--top`) je na ekranu od samog učitavanja, pa ne čeka da „uđe
+odozdo". Kreće od prvog piksela skrola i ide samo nadole, 30 % svoje visine
+dok hero ne izađe sa ekrana (`--plx-to`). Rezerva mu ne treba, pa ostaje u
+punoj oštrini.
+
+Pomeraj ide kroz CSS svojstvo `translate` (ne kroz `transform`). Zato hover
+zum na pločicama, karticama i u galeriji radi zajedno sa paralaksom i ne
+poništava je.
 
 Radi na dva načina, bez razlike u izgledu:
 
 - **Chrome, Edge, Safari 26+**: čista CSS animacija vezana za skrol
   (`animation-timeline: view()`). Računa je GPU, glavna nit je slobodna, pa
   skrol na telefonu ostaje gladak.
-- **Stariji pregledači** (i Firefox): isti pomeraj upisuje `parallax()` u
-  `site.js`, ali samo za slike koje su trenutno na ekranu i najviše jednom po kadru.
+- **Stariji pregledači** (i Firefox): `parallax()` u `site.js` upisuje samo
+  napredak (`--plx-p`, od 0 do 1), a pomeraj iz njega računa isti CSS. Radi
+  samo za slike koje su trenutno na ekranu i najviše jednom po kadru.
 
 Uz `prefers-reduced-motion` nema ni pomeranja ni zuma, slika stoji mirno.
 

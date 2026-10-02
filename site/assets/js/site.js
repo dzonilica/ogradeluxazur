@@ -354,9 +354,9 @@ function year() {
 /* ---------- 12. paralaksa ----------
    Moderni pregledaci (Chrome, Edge, Safari 26+) sve rade u CSS-u, preko
    scroll-driven animacije, van glavne niti - tamo ova funkcija odmah izlazi.
-   Na starijim pregledacima isti pomeraj upisujemo sami, ali samo za slike
-   koje su trenutno na ekranu i samo jednom po kadru.
-   Hod se cita iz CSS-a (--plx-t), da vrednost stoji na jednom mestu.
+   Na starijim pregledacima napredak (0..1) upisujemo sami u --plx-p, a
+   pomeraj iz njega racuna CSS, da vrednosti stoje na jednom mestu. Samo za
+   slike koje su trenutno na ekranu i samo jednom po kadru.
 ------------------------------------------------------------------------- */
 function parallax() {
   const boxes = $$(".plx");
@@ -365,13 +365,13 @@ function parallax() {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   const items = boxes
-    .map(box => ({ box, el: box.querySelector(":scope > picture, :scope > img, :scope > video"), t: 0 }))
+    .map(box => ({
+      box,
+      el: box.querySelector(":scope > picture, :scope > img, :scope > video"),
+      top: box.classList.contains("plx--top")
+    }))
     .filter(it => it.el);
   if (!items.length) return;
-
-  const measure = () => items.forEach(it => {
-    it.t = parseFloat(getComputedStyle(it.el).getPropertyValue("--plx-t")) || 0;
-  });
 
   const live = new Set();
   let raf = 0;
@@ -381,31 +381,39 @@ function parallax() {
     const vh = innerHeight;
     live.forEach(it => {
       const r = it.box.getBoundingClientRect();
-      // 0 = tek ulazi odozdo, 1 = tek je izasla gore
-      const p = Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
-      it.box.style.setProperty("--plx-y", ((p * 2 - 1) * it.t).toFixed(2) + "%");
+      // isto kao view() u CSS-u: 0 = slika tek ulazi odozdo, 1 = izasla je
+      // gore; offsetHeight je visina slike bez pomeraja (visa od okvira).
+      // .plx--top prati samo izlazak (exit): 0 dok stoji, 1 kad nestane.
+      const p = it.top
+        ? 1 - r.bottom / Math.min(vh, r.height)
+        : (vh - r.top) / (vh + it.el.offsetHeight);
+      it.box.style.setProperty("--plx-p", Math.min(1, Math.max(0, p)).toFixed(4));
     });
   };
   const ask = () => { if (!raf && live.size) raf = requestAnimationFrame(frame); };
 
-  measure();
-
   if ("IntersectionObserver" in window) {
-    const byNode = new Map(items.map(it => [it.box, it]));
+    // kartice u karuselu prate ceo karusel: vodoravni skrol ih sece, pa bi
+    // ih observer video kao skrivene i one bi skocile tek kad uplove sa strane
+    const byNode = new Map();
+    items.forEach(it => {
+      const node = it.box.closest(".carousel") || it.box;
+      if (!byNode.has(node)) byNode.set(node, []);
+      byNode.get(node).push(it);
+    });
     const io = new IntersectionObserver(ents => {
-      ents.forEach(e => {
-        const it = byNode.get(e.target);
+      ents.forEach(e => byNode.get(e.target).forEach(it => {
         e.isIntersecting ? live.add(it) : live.delete(it);
-      });
+      }));
       ask();
     }, { rootMargin: "15% 0px" });
-    items.forEach(it => io.observe(it.box));
+    byNode.forEach((_, node) => io.observe(node));
   } else {
     items.forEach(it => live.add(it));
   }
 
   addEventListener("scroll", ask, { passive: true });
-  addEventListener("resize", () => { measure(); ask(); });
+  addEventListener("resize", ask);
   ask();
 }
 

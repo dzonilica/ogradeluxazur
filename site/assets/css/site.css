@@ -586,16 +586,18 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
    --------------------------------------------------------------------------
    Nosac dobija klasu .plx; rezanje preuzima sama klasa.
    Pomera se prvo dete: <img>, <picture> ili <video>.
-     --plx-t  putanja, u procentima visine slike (gore/dole od sredine)
-     --plx-s  zum koji pravi rezervu da se ivica nikad ne vidi; treba
-              da bude najmanje 1 + 2 * --plx-t
-   Pomeraj ide kroz svojstvo translate, a zum kroz scale (ne transform),
-   pa hover zum na plocicama i karticama radi zajedno sa paralaksom.
-   Okvir ne mora da ima fiksnu visinu: u galeriji visinu daje sama slika,
-   a zum je prekriva iznutra.
+     --plx-k  rezerva: slika je za k visine okvira visa i gore i dole, pa
+              dok okvir prolazi kroz ekran klizi od donje do gornje ivice;
+              hod je 2k visine okvira (k .12 = 24 %)
+   Slika se ne zumira: uspravna fotografija u polozenom okviru ionako ima
+   visak visine koji object-fit:cover odseca, a paralaksa sada vozi bas njega.
+   Izuzeci: galerija (zum, okvir nema svoju visinu) i hero (.plx--top).
+   Pomeraj ide kroz svojstvo translate (ne transform), pa hover zum na
+   plocicama i karticama radi zajedno sa paralaksom.
    Na pregledacima sa scroll-driven animacijama (Chrome, Edge, Safari 26+)
    racuna GPU i strana se skroluje bez opterecenja glavne niti; na starijima
-   isti pomeraj upisuje site.js kroz promenljivu --plx-y.
+   site.js upisuje napredak (0..1) u promenljivu --plx-p, a CSS racuna isti
+   pomeraj.
    ========================================================================== */
 /* hidden pa clip: oba reze isto, ali hidden pravi skrol kontejner i onda
    view() prati sam okvir umesto strane; stariji pregledaci koji ne znaju
@@ -605,20 +607,52 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
    min-height:0: okvir sa clip nije skrol kontejner, pa bi ga aspect-ratio
    inace pustio da naraste do prirodne visine (uspravne) slike. */
 .plx{overflow:hidden;overflow:clip;min-height:0}
-.plx > picture{display:block;width:100%;height:100%}
 .plx > img,.plx > picture,.plx > video{
-  --plx-t:5.5%;
-  --plx-s:1.14;
-  translate:0 var(--plx-y,0%);
+  --plx-k:.12;
+  --plx-s:1;
+  /* od "donja ivica slike na dnu okvira" do "gornja na vrhu"; procenti
+     translate-a su od visine same slike, zato deljenje sa (1 + 2k) */
+  --plx-from:calc(-200% * var(--plx-k) / (1 + 2 * var(--plx-k)));
+  --plx-to:0%;
+  display:block;width:100%;
+  height:calc(100% * (1 + 2 * var(--plx-k)));
+  object-fit:cover;
+  translate:0 calc(var(--plx-from) + (var(--plx-to) - var(--plx-from)) * var(--plx-p,.5));
   scale:var(--plx-s);
 }
 @keyframes plxDrift{
-  from{translate:0 calc(-1 * var(--plx-t))}
-  to  {translate:0 var(--plx-t)}
+  from{translate:0 var(--plx-from)}
+  to  {translate:0 var(--plx-to)}
 }
+
+/* zaglavlja strana: uspravne fotografije u sirokom okviru imaju mnogo
+   viska visine, pa jaci hod nista ne kosta */
+.phead__banner > img{--plx-k:.25}
+
+/* CTA na pocetnoj: ograda je na samom dnu fotografije, iznad je plafon
+   balkona; hod vodi kadar navise, pa manja rezerva drzi kadar na ogradi */
+.media-cap--low > img{--plx-k:.08;object-position:50% 100%}
+
+/* galerija: okvir nema svoju visinu (daje je slika), pa rezervu pravi zum */
+.gitem > img{
+  --plx-k:.1;
+  --plx-s:calc(1 + 2 * var(--plx-k));
+  --plx-from:calc(-100% * var(--plx-k));
+  --plx-to:calc(100% * var(--plx-k));
+  height:auto;
+}
+
+/* .plx--top: okvir koji je na ekranu od samog ucitavanja (hero). Krece od
+   prvog piksela skrola (opseg exit) i ide samo nadole, ka delu okvira koji
+   je vec izasao sa ekrana, pa mu rezerva ne treba: slika je iste visine
+   kao okvir i u punoj ostrini. */
+.plx--top{--plx-p:0}
+.plx--top > img,.plx--top > picture,.plx--top > video{--plx-k:0;--plx-from:0%;--plx-to:30%}
+
 @supports (animation-timeline:view()){
   @media (prefers-reduced-motion:no-preference){
     .plx > img,.plx > picture,.plx > video{animation:plxDrift linear both;animation-timeline:view()}
+    .plx--top > img,.plx--top > picture,.plx--top > video{animation-range:exit}
 
     /* karusel sara je vodoravni skrol kontejner, pa bi view() pratio njega
        (a on se uspravno ne pomera); zato kartice prate polozaj samog
@@ -627,10 +661,6 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
     .carousel .plx > img{animation-timeline:--plx-car}
   }
 }
-
-/* hero: rezervu daje uvucen okvir (inset), pa slika ostaje u punoj ostrini */
-.hero__media{inset:-6% 0}
-.hero__media > picture{--plx-t:5%;--plx-s:1}
 
 /* bez pokreta (prefers-reduced-motion): blok je na dnu, posle MOBILNI */
 
@@ -677,10 +707,6 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
 @media (max-width:780px){
   .section{padding-block:clamp(58px,11vw,80px)}
   .section--tight{padding-block:clamp(46px,9vw,64px)}
-
-  /* paralaksa: kratak hod i manji zum, da se slika ne mekša na malom ekranu */
-  .plx > img,.plx > picture,.plx > video{--plx-t:3.4%;--plx-s:1.085}
-  .hero__media > picture{--plx-t:3%;--plx-s:1}
 
   /* zrno preko cele slike se mesa (mix-blend-mode) u svakom kadru skrola -
      na telefonu se ne vidi, a kosta, pa ga gasimo */
@@ -781,7 +807,7 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
   }
   .rv{opacity:1;transform:none}
   /* paralaksa: slika stoji tacno kao pre, bez pomeraja i bez zuma */
-  .plx > img,.plx > picture,.plx > video{--plx-t:0%;--plx-s:1}
+  .plx > img,.plx > picture,.plx > video{--plx-k:0;--plx-s:1;--plx-from:0%;--plx-to:0%}
 }
 
 /* ==========================================================================
