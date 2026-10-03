@@ -1,7 +1,7 @@
 /* ==========================================================================
    LUX AZUR — design system
    Grotesk: Archivo · Mono: JetBrains Mono
-   Paleta: svetli krem + crveni detalji
+   Paleta: svetli krem + azur plavi detalji
    ========================================================================== */
 
 :root{
@@ -21,11 +21,11 @@
   --fg-faint:   #6E6359;   /* 5.1:1 na paper, 4.5:1 na bone */
   --on-dark-mut:rgba(255,248,238,.64);
 
-  /* akcenat: crvena */
-  --accent:      #C8102E;
-  --accent-ink:  #A50D26;   /* hover */
-  --accent-soft: rgba(200,16,46,.10);
-  --accent-lite: #E8475C;   /* crvena na tamnoj podlozi (citljivija) */
+  /* akcenat: azur plava (po imenu), prigusena da ne vice */
+  --accent:      #2A5B84;   /* 6.3:1 na paper, beli tekst na njoj 7.2:1 */
+  --accent-ink:  #1F4766;   /* hover */
+  --accent-soft: rgba(42,91,132,.10);
+  --accent-lite: #8DB4D6;   /* plava na tamnoj podlozi: 8.1:1 na ink (osnovna samo 2.5:1) */
 
   /* lines */
   --line:       rgba(30,23,20,.13);
@@ -98,6 +98,7 @@ ul,ol{margin:0;padding:0;list-style:none}
 }
 .eyebrow::before{content:"";width:7px;height:7px;background:var(--accent);flex:none}
 .section--dark .eyebrow{color:var(--on-dark-mut)}
+.section--dark .eyebrow::before{background:var(--accent-lite)}
 
 .h1{font-size:clamp(30px,5.1vw,60px);font-weight:400;line-height:1.06;letter-spacing:-.025em}
 .h2{font-size:clamp(28px,4.3vw,52px);font-weight:400;line-height:1.08;letter-spacing:-.025em}
@@ -208,9 +209,11 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
    ========================================================================== */
 .hero{
   position:relative;
+  /* tacno prvi ekran, traka sa uslugama je ispod njega. svh, ne dvh: na
+     telefonu je to ekran sa prikazanom trakom pregledaca, a velicina se ne
+     menja dok se traka skriva u skrolu, pa strana ne poskakuje */
   min-height:100vh;      /* fallback */
   min-height:100svh;
-  min-height:100dvh;     /* prati traku pregledača na telefonu */
   display:flex;flex-direction:column;justify-content:flex-end;
   background:var(--ink);color:#fff;overflow:hidden;overflow:clip;isolation:isolate;
 }
@@ -231,23 +234,24 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-.hero__body{padding-top:calc(var(--nav-h) + 90px);padding-bottom:40px}
+.hero__body{padding-top:calc(var(--nav-h) + 90px);padding-bottom:clamp(40px,7vh,72px)}
 .hero__title{
   font-family:var(--mono);font-weight:400;text-transform:uppercase;
   font-size:clamp(23px,4.55vw,58px);line-height:1.04;letter-spacing:-.005em;text-wrap:balance;
 }
 .hero__title .dot{color:var(--accent-lite);margin-right:.35em}
 .hero__title{text-shadow:0 2px 24px rgba(22,15,12,.35)}
-/* crveni pocetak linije, ostatak beo */
-.hero__rule{height:2px;background:linear-gradient(90deg,var(--accent) 0 72px,rgba(255,255,255,.36) 72px);margin-top:clamp(20px,3vw,34px)}
+/* plavi pocetak linije (svetlija nijansa, jer je ispod tamna fotografija), ostatak beo */
+.hero__rule{height:2px;background:linear-gradient(90deg,var(--accent-lite) 0 72px,rgba(255,255,255,.36) 72px);margin-top:clamp(20px,3vw,34px)}
 .hero__meta{margin-top:18px;display:flex;gap:28px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
 .hero__sub{font-size:14.5px;line-height:1.5;max-width:46ch;color:rgba(255,255,255,.9)}
 .hero__coord{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;color:rgba(255,255,255,.74);white-space:nowrap}
 
-.hero__strip{background:var(--paper);color:var(--fg-muted);padding-block:22px;border-top:2px solid var(--accent)}
-.hero__strip ul{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
-.hero__strip li{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
-.hero__strip li::before{content:"";width:6px;height:6px;background:var(--accent);flex:none}
+/* traka sa uslugama, prvo sto se vidi kad se skroluje ispod hero-a */
+.strip{background:var(--paper);color:var(--fg-muted);padding-block:22px;border-top:2px solid var(--accent)}
+.strip ul{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.strip li{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.strip li::before{content:"";width:6px;height:6px;background:var(--accent);flex:none}
 
 /* ==========================================================================
    STATEMENT
@@ -629,9 +633,20 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
    viska visine, pa jaci hod nista ne kosta */
 .phead__banner > img{--plx-k:.25}
 
+/* pocetna: okviri su niski (kartice, plocice), pa bi sa osnovnih .12 slika
+   isla svega 4-6 % brzine skrola i pomeraj se ne bi ni primetio. Ovde je
+   rezerva podignuta do granice do koje uspravna fotografija jos ne mora da
+   se uveca (panel, kartice sara); kvadratne slike u plocicama se uvecaju,
+   zato plocice vuku i -960 verziju (srcset) */
+.fcard__media > img{--plx-k:.2}
+.ppanel__img > img,.ppanel__img > video{--plx-k:.25}
+.pcard__img > img{--plx-k:.3}
+.tile > img{--plx-k:.25}
+
 /* CTA na pocetnoj: ograda je na samom dnu fotografije, iznad je plafon
-   balkona; hod vodi kadar navise, pa manja rezerva drzi kadar na ogradi */
-.media-cap--low > img{--plx-k:.08;object-position:50% 100%}
+   balkona; hod vodi kadar navise, pa je rezerva manja nego na ostalim
+   slikama, da ograda ostane u kadru dok je CTA na sredini ekrana */
+.media-cap--low > img{--plx-k:.16;object-position:50% 100%}
 
 /* galerija: okvir nema svoju visinu (daje je slika), pa rezervu pravi zum */
 .gitem > img{
@@ -690,9 +705,9 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
 }
 @media (max-width:620px){
   .tiles{grid-template-columns:1fr 1fr}
-  .hero__strip{padding-block:16px}
-  .hero__strip ul{gap:7px 16px;justify-content:flex-start}
-  .hero__strip li{font-size:9.5px;letter-spacing:.1em}
+  .strip{padding-block:16px}
+  .strip ul{gap:7px 16px;justify-content:flex-start}
+  .strip li{font-size:9.5px;letter-spacing:.1em}
   .ftabs{grid-template-columns:1fr}
   .ftab:nth-child(n+2){margin-top:0}
   .ftab{padding-right:0}
@@ -716,7 +731,7 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
   .ppanel__card{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(30,23,20,.95)}
 
   /* hero: veci naslov, mirnija slika, bez animacije zumiranja */
-  .hero__body{padding-top:calc(var(--nav-h) + 40px);padding-bottom:30px}
+  .hero__body{padding-top:calc(var(--nav-h) + 40px);padding-bottom:36px}
   .hero__title{font-size:clamp(26px,7.6vw,40px);line-height:1.08}
   .hero__media img{animation:none;object-position:70% 50%}
   .hero__rule{margin-top:20px}
@@ -781,7 +796,7 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
   .field label{font-size:11.5px}
   .cstrip .k{font-size:11px}
   .cstrip a,.cstrip div{font-size:12.5px;padding-block:17px}
-  .hero__strip li{font-size:10.5px}
+  .strip li{font-size:10.5px}
   .filter{padding:11px 15px;font-size:11.5px}
   .idx__label{font-size:13px}
   .idx__row{padding-block:17px}
@@ -813,7 +828,7 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
 /* ==========================================================================
    LOADER  (prikazuje se samo jednom po poseti; bez JS-a se nikad ne pojavi)
    Minimalan: na krem tabli ime "Lux Azur" izranja iz svoje linije, ispod
-   njega se crvena nit iscrta s leva na desno, kao laserski rez. Na izlazu
+   njega se plava nit iscrta s leva na desno, kao laserski rez. Na izlazu
    reci odlaze nagore, nit se povuce udesno i tabla se podigne.
    Pokret krece tek kada stigne font (klasa .is-go iz site.js), da se
    slovo ne bi zamenilo usred animacije.

@@ -33,7 +33,7 @@ function loader() {
   if (!root.classList.contains("js-loading")) { el.remove(); return; }
   try { sessionStorage.setItem("la_seen", "1"); } catch (e) {}
 
-  // ulaz (reci + crvena nit) traje ~0,9 s, pa ime jos ~0,45 s mirno stoji
+  // ulaz (reci + plava nit) traje ~0,9 s, pa ime jos ~0,45 s mirno stoji
   const MIN = 1350;                  // od pocetka ulaza do pocetka izlaza (ms)
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let t0 = 0, done = false, fontsOk = false;

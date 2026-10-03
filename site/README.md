@@ -73,19 +73,25 @@ site/
 
 ## 3. Boje i tipografija
 
-Paleta je **svetli krem sa crvenim detaljima**. Sve je u `assets/css/site.css`,
-blok `:root` na vrhu:
+Paleta je **svetli krem sa azur plavim detaljima** (plava po imenu „Lux
+Azur“, prigušena da ne upada u oči). Sve je u `assets/css/site.css`, blok
+`:root` na vrhu:
 
 ```css
 --paper:  #F6F0E5;   /* krem - pozadina strane */
 --bone:   #ECE2D0;   /* tamniji krem - footer, sekcija sa šarama */
 --ink:    #1E1714;   /* topla braon-crna - tekst i tamna sekcija */
---accent: #C8102E;   /* crvena - dugmad, linkovi, brojevi, kvadratići */
---accent-lite: #E8475C; /* svetlija crvena za tamnu podlogu (hero, brojevi) */
+--accent: #2A5B84;   /* azur plava - dugmad, linkovi, brojevi, kvadratići */
+--accent-ink:  #1F4766; /* tamnija plava - hover */
+--accent-lite: #8DB4D6; /* svetlija plava za tamnu podlogu (hero, brojevi) */
 ```
 
-Crvena `#C8102E` na kremu ima kontrast 5,2:1, a beli tekst na crvenom
-dugmetu 5,9:1, pa oba prolaze WCAG AA i za sitan tekst.
+Plava `#2A5B84` na kremu ima kontrast 6,3:1, a beli tekst na plavom
+dugmetu 7,2:1, pa oba prolaze WCAG AA i za sitan tekst. Na tamnoj podlozi
+osnovna plava ima svega 2,5:1, zato tamo (linija u hero-u, kvadratići i
+brojevi u tamnoj sekciji) ide `--accent-lite`, 8,1:1.
+
+Boja se menja samo u ova četiri tokena u `:root` i u faviconu (vidi ispod).
 
 Fontovi: **Archivo** (naslovi/tekst) + **JetBrains Mono** (labele, navigacija),
 oba sa Google Fonts.
@@ -100,8 +106,13 @@ oba sa Google Fonts.
 
 ## 5. Hero i mobilni prikaz
 
-Hero na `index.html` zauzima **celu visinu ekrana** (`min-height:100dvh` u
-`.hero`), pa ispod njega ne ostaje traka bele pozadine ni na jednom telefonu.
+Hero na `index.html` zauzima **tačno prvi ekran** (`min-height:100svh` u
+`.hero`), i na telefonu i na računaru. Traka sa uslugama (`.strip`, lasersko
+sečenje… montaža) je ispod njega i vidi se tek kad se skroluje.
+
+`svh`, a ne `dvh`: na telefonu je to visina ekrana sa prikazanom trakom
+pregledača, pa hero pri učitavanju staje tačno u ekran. Ta visina se ne
+menja dok se traka pregledača skriva u skrolu, pa strana ne poskakuje.
 
 Fotografija se učitava u dve verzije:
 
@@ -175,7 +186,11 @@ Posebni slučajevi, takođe u bloku `PARALAKSA`:
 | Gde | `--plx-k` | Zašto |
 |---|---|---|
 | Zaglavlja strana (`.phead__banner`) | `.25` | uspravna fotografija u širokom okviru, jači hod je besplatan |
-| CTA na početnoj (`.media-cap--low`) | `.08` | ograda je na dnu fotografije, veći hod bi otkrio plafon balkona |
+| Velika kartica (`.fcard__media`) | `.2` | |
+| Panel procesa (`.ppanel__img`) | `.25` | uspravna fotografija u položenom okviru, bez uvećanja |
+| Kartice šara (`.pcard__img`) | `.3` | nizak okvir; sa `.12` pomeraj se nije primećivao |
+| Pločice (`.tile`) | `.25` | nizak okvir; kvadratne slike se uvećaju, zato `srcset` sa `-960` |
+| CTA na početnoj (`.media-cap--low`) | `.16` | ograda je na dnu fotografije, veći hod bi otkrio plafon balkona |
 | Galerija (`.gitem`) | `.1` | okvir nema svoju visinu (daje je slika), pa rezervu pravi zum |
 | Hero (`.plx--top`) | — | vidi ispod |
 
@@ -233,7 +248,7 @@ Sajt nema grafički znak. U navigaciji piše samo **Lux Azur**: „Lux“ u
 srednjem rezu, „Azur“ u tankom i prigušenom tonu (`.brand__name` u svakoj
 `.html` datoteci).
 
-Favicon (`<link rel="icon">`, inline SVG) je crveni zaobljen kvadrat sa
+Favicon (`<link rel="icon">`, inline SVG) je azur plavi zaobljen kvadrat sa
 inicijalima **LA** u krem boji.
 
 ## 9. Loader
@@ -242,7 +257,7 @@ Prikazuje se **samo pri prvom otvaranju sajta u poseti** (pamti se u
 `sessionStorage`), ne na svakom kliku kroz meni.
 
 Minimalan je, bez znaka. Na krem tabli ime **Lux Azur** izranja iz svoje
-linije, a ispod njega se crvena nit iscrta s leva na desno, kao laserski
+linije, a ispod njega se plava nit iscrta s leva na desno, kao laserski
 rez. Na izlazu reči odlaze nagore, nit se povlači udesno i tabla se podigne.
 
 Ulazna animacija **čeka da stigne font** (Archivo), da se slovo ne bi
