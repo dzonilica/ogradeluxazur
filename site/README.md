@@ -256,14 +256,9 @@ inicijalima **LA** u krem boji.
 Prikazuje se **samo pri prvom otvaranju sajta u poseti** (pamti se u
 `sessionStorage`), ne na svakom kliku kroz meni.
 
-Minimalan je, bez znaka. Na krem tabli ime **Lux Azur** izranja iz svoje
-linije, a ispod njega se plava nit iscrta s leva na desno, kao laserski
-rez. Na izlazu reči odlaze nagore, nit se povlači udesno i tabla se podigne.
-
-Ulazna animacija **čeka da stigne font** (Archivo), da se slovo ne bi
-zamenilo usred pokreta. Ako font kasni, kreće posle 0,7 s i ime ostaje u
-sistemskom slogu do kraja (klasa `is-sys`), pa se slovo nikad ne menja usred
-animacije.
+Loader je prazna krem zavesa. Kada se stranica učita, zavesa se podiže
+nagore i otkriva sadržaj za 0,85 s. Kratko zadržavanje od najmanje 0,25 s
+čini prelaz vidljivim i pri brzom učitavanju.
 
 Sigurnosne granice:
 
@@ -275,7 +270,7 @@ Sigurnosne granice:
 Trajanje se menja u `assets/js/site.js`:
 
 ```js
-const MIN = 1350;   // od početka ulaza do početka izlaza (ms); ulaz traje ~0,9 s
+const MIN = 250;    // najmanje zadržavanje pre otkrivanja stranice (ms)
 ```
 
 a izgled u `assets/css/site.css`, sekcija `LOADER` na dnu.

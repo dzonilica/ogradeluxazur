@@ -33,56 +33,31 @@ function loader() {
   if (!root.classList.contains("js-loading")) { el.remove(); return; }
   try { sessionStorage.setItem("la_seen", "1"); } catch (e) {}
 
-  // ulaz (reci + plava nit) traje ~0,9 s, pa ime jos ~0,45 s mirno stoji
-  const MIN = 1350;                  // od pocetka ulaza do pocetka izlaza (ms)
+  // kratko zadrzavanje krem zavese, pa podizanje koje otkriva stranicu
+  const MIN = 250;                   // najmanje zadrzavanje pre otkrivanja (ms)
+  const t0 = performance.now();
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let t0 = 0, done = false, fontsOk = false;
+  let done = false;
+
+  const cleanup = () => {
+    root.classList.remove("js-loading");
+    el.remove();
+  };
 
   const finish = () => {
     if (done) return;
     done = true;
-    el.classList.add("is-done");
     // js-loading ostaje dok traje izlazna animacija, inace bi .loader
-    // odmah dobio display:none i izlaz se ne bi ni video; bez pokreta
-    // izlaza nema, pa se strana otkljucava odmah
-    setTimeout(() => {
-      root.classList.remove("js-loading");
-      el.remove();
-    }, calm ? 60 : 1000);
+    // odmah dobio display:none i podizanje se ne bi ni videlo
+    el.addEventListener("transitionend", cleanup, { once: true });
+    el.classList.add("is-done");
+    setTimeout(cleanup, calm ? 250 : 1000); // rezerva ako transitionend izostane
   };
 
-  // ulazna animacija krece tek kad stigne font imena, da se slovo ne
-  // zameni usred pokreta; ako font kasni, krece posle 700 ms sistemskim
-  const go = () => {
-    if (t0 || done) return;
-    t0 = performance.now();
-    if (!fontsOk) el.classList.add("is-sys");
-    requestAnimationFrame(() => el.classList.add("is-go"));
-    const onReady = () => setTimeout(finish, Math.max(0, MIN - (performance.now() - t0)));
-    if (document.readyState === "complete") onReady();
-    else addEventListener("load", onReady, { once: true });
-  };
-
-  fontReady().then(() => { fontsOk = true; go(); });
-  setTimeout(go, 700);
+  const onReady = () => setTimeout(finish, calm ? 0 : Math.max(0, MIN - (performance.now() - t0)));
+  if (document.readyState === "complete") onReady();
+  else addEventListener("load", onReady, { once: true });
   setTimeout(finish, 4500);          // sigurnosni prekid
-}
-
-/* Google Fonts se ucitava odlozeno (media="print" trik), pa prvo cekamo
-   da stigne stylesheet, a onda bas oba reza Archiva koja loader koristi. */
-function fontReady() {
-  const link = $('link[rel="stylesheet"][href*="fonts.googleapis.com"]');
-  const sheet = new Promise(res => {
-    if (!link || link.sheet) return res();
-    link.addEventListener("load", res, { once: true });
-    link.addEventListener("error", res, { once: true });
-  });
-  return sheet
-    .then(() => document.fonts && Promise.all([
-      document.fonts.load('500 1em "Archivo"', "Lux"),
-      document.fonts.load('300 1em "Archivo"', "Azur")
-    ]))
-    .catch(() => {});
 }
 
 /* ---------- 1. kontakt podaci u DOM ---------- */

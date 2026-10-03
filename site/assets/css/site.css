@@ -827,67 +827,21 @@ body.menu-open .drawer{opacity:1;visibility:visible;transform:none}
 
 /* ==========================================================================
    LOADER  (prikazuje se samo jednom po poseti; bez JS-a se nikad ne pojavi)
-   Minimalan: na krem tabli ime "Lux Azur" izranja iz svoje linije, ispod
-   njega se plava nit iscrta s leva na desno, kao laserski rez. Na izlazu
-   reci odlaze nagore, nit se povuce udesno i tabla se podigne.
-   Pokret krece tek kada stigne font (klasa .is-go iz site.js), da se
-   slovo ne bi zamenilo usred animacije.
+   Prazna krem zavesa se podize nagore i otkriva stranicu.
    ========================================================================== */
 html.js-loading{overflow:hidden}   /* samo <html>, vidi napomenu kod no-scroll */
 
 .loader{
   position:fixed;inset:0;z-index:9999;display:none;
-  background:var(--paper);color:var(--ink);
+  background:var(--paper);
   transform:translateY(0);
-  transition:transform .72s cubic-bezier(.76,0,.24,1) .2s;
+  transition:transform .85s cubic-bezier(.76,0,.24,1);
   will-change:transform;
 }
-html.js-loading .loader{display:grid;place-items:center}
+html.js-loading .loader{display:block}
 .loader.is-done{transform:translateY(-100%);pointer-events:none}
 
-.loader__in{display:flex;flex-direction:column;gap:clamp(14px,1.6vw,20px)}
-
-.loader__word{
-  display:flex;gap:.24em;
-  font-size:clamp(42px,7.2vw,92px);line-height:1;letter-spacing:-.04em;
-}
-/* pre .is-go se ime ne crta uopste, pa se nikad ne vidi u pogresnom fontu */
-.loader:not(.is-go) .loader__word{visibility:hidden}
-/* font nije stigao na vreme: ime ostaje u sistemskom slogu do kraja,
-   umesto da se Archivo ubaci usred pokreta */
-.loader.is-sys .loader__word{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-/* svaka rec u svom prozoru (clip), pa se vidi samo dok je "u liniji" */
-.loader__word > span{display:block;overflow:hidden;overflow:clip;padding-block:.06em .1em}
-.loader__word i{
-  display:block;font-style:normal;
-  transform:translateY(112%);
-  transition:transform .8s cubic-bezier(.16,1,.3,1);
-}
-.loader__word .w1 i{font-weight:500}
-.loader__word .w2 i{font-weight:300;color:var(--fg-muted);transition-delay:.07s}
-
-.loader__line{
-  display:block;height:1px;background:var(--accent);
-  transform:scaleX(0);transform-origin:left;
-  transition:transform .8s cubic-bezier(.65,0,.35,1) .1s;
-}
-
-.loader.is-go .loader__word i{transform:none}
-.loader.is-go .loader__line{transform:scaleX(1)}
-
-.loader.is-done .loader__word i{
-  transform:translateY(-112%);
-  transition:transform .5s cubic-bezier(.7,0,.84,0);
-}
-.loader.is-done .loader__word .w2 i{transition-delay:.04s}
-.loader.is-done .loader__line{
-  transform:scaleX(0);transform-origin:right;
-  transition:transform .45s cubic-bezier(.7,0,.84,0);
-}
-
 @media (prefers-reduced-motion:reduce){
-  .loader{transition:opacity .25s linear}
+  .loader{transition:opacity .2s linear}
   .loader.is-done{transform:none;opacity:0}
-  .loader__word i,.loader.is-done .loader__word i{transform:none;transition:none}
-  .loader__line,.loader.is-done .loader__line{transform:none;transition:none}
 }
